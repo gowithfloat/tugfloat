@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+set -e
+
+print_usage() {
+    echo "Manage Tugboat instances with git branch name"
+    echo " "
+    echo "usage: $0 [options]"
+    echo " "
+    echo "options:"
+    echo "-h, --help                show brief help"
+    echo "-b                        name of git branch to preview (required)"
+    echo "-p                        name of base preview branch (optional)"
+    echo "-r                        tugboat repo ID (required; can be set with TUGBOAT_REPO_ID)"
+    echo "-t                        Tugboat API token (required; can be set with TUGBOAT_TOKEN)"
+    echo "-o                        operation: launch|sink|link"
+}
+
+auth_token=${TUGBOAT_TOKEN}
+repo_id=${TUGBOAT_REPO_ID}
+
+while getopts 'b:p:r:t:o:' flag; do
+    case "${flag}" in
+        b) git_branch=${OPTARG};;
+        p) git_base_branch=${OPTARG};;
+        r) repo_id=${OPTARG} ;;
+        t) auth_token=${OPTARG};;
+        o) operation=${OPTARG};;
+        *) print_usage
+           exit 1 ;;
+    esac
+done
+shift $((OPTIND -1))
+
+if [ -z $repo_id ]; then
+      echo "No repository ID specified. See --help";
+      exit 1;
+fi
+
+if [ -z $git_branch ]; then
+      echo "No git branch specified. See --help";
+      exit 1;
+fi
+
+use_token=""
+if [ -n "$auth_token" ]; then
+      use_token="-t $auth_token"
+fi
+
+get_boats(){
+    get_preview_ids $git_branch
+}
+
+get_preview_ids(){
+    get_previews $1 | jq -r '.id'
+}
+
+get_previews(){
+    tugboat list previews repo=$repo_id $use_token -j | \
+        jq ".[] | select(.ref == \"$1\")"
+}
+
+sink(){
+    for boat in $(get_boats)
+    do
+        tugboat delete $boat $use_token
+	    echo "Deleted tugboat instance with id $boat"
+    done
+}
+
+get_boat_urls(){
+    get_previews $git_branch | jq -r '.url'
+}
+
+launch_or_update(){
+    for boat in $(get_boats)
+    do
+        echo "Rebuilding tugboat instance with id $boat"
+        tugboat rebuild $boat children=true force=true $use_token
+	    return
+    done
+
+    base=$(get_preview_ids $git_base_branch | head -n 1)
+
+    if [ -n $base ]; then
+        echo "Creating new tugboat preview from git branch $git_branch based on $git_base_branch"
+        tugboat create preview $git_branch base=$base repo=$repo_id $use_token
+    else
+        echo "Creating new tugboat preview from git branch $git_branch"
+        tugboat create preview $git_branch repo=$repo_id $use_token
+    fi
+}
+
+case $operation in
+    launch)
+        echo "Launching or updating tugboat preview for branch $git_branch"
+        launch_or_update
+        ;;
+    sink)
+        echo "Deleting all tugboat previews for branch $git_branch"
+        sink
+        ;;
+    link)
+        get_boat_urls
+        ;;
+    *)
+        echo "Operation not specified. See --help"
+        ;;
+esac
+
