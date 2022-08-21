@@ -1,15 +1,15 @@
 tugfloat
 ========
-Manage [Tugboat](https://www.tugboat.qa) previews by git branch name. This is primarily useful if you are using a custom CI/CD (i.e. Jenkins) with Tugboat.
+Manage [Tugboat](https://www.tugboatqa.com) previews by git branch name. This is primarily useful if you are using a custom CI/CD (i.e. Jenkins) with Tugboat.
 
 Requirements
 ------------
-* Tugboat CLI - https://docs.tugboat.qa/tugboat-cli/
+* Tugboat CLI - https://docs.tugboatqa.com/tugboat-cli/
 * jq - https://stedolan.github.io/jq/
 
 Environment Variables
 -----
-* `TUGBOAT_TOKEN` - your Tugboat token (https://dashboard.tugboat.qa/access-tokens)
+* `TUGBOAT_TOKEN` - your Tugboat token (https://dashboard.tugboatqa.com/access-tokens)
 * `TUGBOAT_REPO_ID` - the ID number for the repo (you can find this in the URL)
 
 Examples
