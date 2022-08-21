@@ -12,7 +12,7 @@ print_usage() {
     echo "-p                        name of base preview branch (optional)"
     echo "-r                        tugboat repo ID (required; can be set with TUGBOAT_REPO_ID)"
     echo "-t                        Tugboat API token (required; can be set with TUGBOAT_TOKEN)"
-    echo "-o                        operation: launch|sink|link"
+    echo "-o                        operation: launch|sink|link|id"
 }
 
 auth_token=${TUGBOAT_TOKEN}
@@ -102,8 +102,10 @@ case $operation in
     link)
         get_boat_urls
         ;;
+    id)
+        get_boats
+        ;;
     *)
         echo "Operation not specified. See --help"
         ;;
 esac
-

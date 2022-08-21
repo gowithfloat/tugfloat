@@ -23,5 +23,8 @@ tugfloat -o launch -b feature/my-feature -p main
 ### Retrieve the URL to a preview for `feature/my-feature`
 tugfloat -o link -b feature/my-feature
 
+### Retrieve the ID of a preview for `feature/my-feature`
+tugfloat -o id -b feature/my-feature
+
 ### Delete a preview for `feature/my-feature`
 tugfloat -o sink -b feature/my-feature
